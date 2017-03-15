@@ -2,7 +2,7 @@ version: '2'
 
 services:
   transmission-seq:
-    image: lndvll/transmission-seq:latest
+    image: lindvall/transmission-seq:latest
     container_name: transmission-seq
     build:
       context: .
