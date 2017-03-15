@@ -1,0 +1,6 @@
+#!/bin/sh
+export TERM="xterm"
+export HOME="/home/transmission"
+export PWD="/home/transmission"
+cd /home/transmission
+exec transmission-daemon --foreground

@@ -1,0 +1,22 @@
+version: '2'
+
+services:
+  transmission-seq:
+    image: lndvll/transmission-seq:latest
+    container_name: transmission-seq
+    build:
+      context: .
+    ports:
+      - "8080:9091"
+      - "51413:51413"
+      - "51413:51413/udp"
+    environment:
+      - UID=991
+      - GID=991
+      - RPC_AUTHENTICATION_REQUIRED=true
+      - RPC_PASSWORD=password
+      - RPC_USERNAME=user
+      - RPC_WHITELIST_ENABLED=false
+    volumes:
+      - "./Downloads:/home/transmission/Downloads/"
+      - "./settings:/home/transmission/.config/transmission-daemon/"
