@@ -85,4 +85,4 @@ fi
 
 chown -R $UID:$GID /home/transmission /tmp /home/transmission/.config/transmission-daemon /home/transmission/Downloads /etc/s6.d
 
-exec su-exec $GID:$UID /bin/s6-svscan /etc/s6.d
+exec su-exec $UID:$GID /bin/s6-svscan /etc/s6.d
