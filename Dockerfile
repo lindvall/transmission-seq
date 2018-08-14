@@ -52,7 +52,7 @@ RUN chmod +x /usr/bin/* /etc/s6.d/*/* /etc/s6.d/.s6-svscan/*
 
 VOLUME /home/transmission/.config/transmission-daemon /home/transmission/Downloads
 
-EXPOSE 9091 51413 51413/udp
+EXPOSE 9091
 
 LABEL description="BitTorrent client with WebUI front-end" \
       transmission="Transmission BiTorrent client v$TRANSMISSION_VER" \
