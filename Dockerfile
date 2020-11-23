@@ -1,10 +1,10 @@
-FROM alpine:edge
+# Multistage docker build, requires docker 17.05
 
-ARG TRANSMISSION_VER=2.94-seq
+# builder stage
+FROM alpine:edge as builder
+
+ARG TRANSMISSION_VER=3.00-seq1
 ARG BUILD_CORES
-
-ENV UID=991 GID=991 \
-    FLOOD_SECRET=supersecret
 
 RUN NB_CORES=${BUILD_CORES-`getconf _NPROCESSORS_CONF`} \
  && BUILD_DEPS=" \
@@ -23,7 +23,8 @@ RUN NB_CORES=${BUILD_CORES-`getconf _NPROCESSORS_CONF`} \
     libressl-dev \
     ncurses-dev \
     curl-dev \
-    binutils" \
+    binutils \
+    git" \
  && apk -U upgrade && apk add \
     ${BUILD_DEPS} \
     ca-certificates \
@@ -37,11 +38,38 @@ RUN NB_CORES=${BUILD_CORES-`getconf _NPROCESSORS_CONF`} \
     su-exec \
     libevent \
     jq \
- && cd /tmp && mkdir transmission \
- && cd transmission && wget -qO- https://github.com/Mikayex/transmission/archive/${TRANSMISSION_VER}.tar.gz | tar xz --strip 1 \
- && cd /tmp/transmission && cmake . && make -j ${NB_CORES} && make install \
- && strip -s /usr/local/bin/transmission-daemon \
- && apk del ${BUILD_DEPS} \
+ && rm -rf /var/cache/apk/* /tmp/*
+
+RUN cd /tmp \
+ && git clone --depth 1 --branch ${TRANSMISSION_VER} https://github.com/Mikayex/transmission.git Transmission \
+ && cd Transmission \
+ && git submodule update --init \
+ && mkdir build && cd build && cmake .. && make -j ${NB_CORES} && make install \
+ && strip -s /usr/local/bin/transmission-daemon
+
+# runtime stage
+FROM alpine:edge
+
+ENV UID=991 GID=991 \
+    FLOOD_SECRET=supersecret
+
+COPY --from=builder /usr/local/share/transmission/web /usr/local/share/transmission/web
+COPY --from=builder /usr/local/share/doc/transmission /usr/local/share/doc/transmission
+COPY --from=builder /usr/local/bin/transmission-* /usr/local/bin/
+COPY --from=builder /usr/local/share/man/man1/transmission-* /usr/local/share/man/man1/
+
+RUN apk -U upgrade && apk add \
+     ca-certificates \
+     curl \
+     libressl \
+     gzip \
+     zip \
+     zlib \
+     unrar \
+     s6 \
+     su-exec \
+     libevent \
+     jq \
  && rm -rf /var/cache/apk/* /tmp/*
 
 COPY s6.d /etc/s6.d
